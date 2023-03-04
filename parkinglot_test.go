@@ -1,9 +1,9 @@
-package parking-lot
+package parking
 
 import (
 	"fmt"
-	"github.com/hbkkanna/parking-lot/slot"
-	"github.com/hbkkanna/parking-lot/tariff"
+	"github.com/hbkkanna/parking/slot"
+	"github.com/hbkkanna/parking/tariff"
 	"math"
 	"testing"
 	"time"

@@ -2,7 +2,7 @@ package tariff
 
 import (
 	"fmt"
-	"github.com/hbkkanna/parking-lot/slot"
+	"github.com/hbkkanna/parking/slot"
 	"math"
 	"testing"
 	"time"

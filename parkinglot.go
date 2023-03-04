@@ -1,10 +1,10 @@
-package parking-lot
+package parking
 
 import (
 	"errors"
 	"fmt"
-	"github.com/hbkkanna/parking-lot/slot"
-	"github.com/hbkkanna/parking-lot/tariff"
+	"github.com/hbkkanna/parking/slot"
+	"github.com/hbkkanna/parking/tariff"
 	"time"
 )
 

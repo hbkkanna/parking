@@ -1,7 +1,7 @@
 package tariff
 
 import (
-	parking "github.com/hbkkanna/parking-lot/slot"
+	parking "github.com/hbkkanna/parking/slot"
 	"math"
 )
 
