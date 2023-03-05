@@ -35,37 +35,37 @@ func (timeConstraint *TimeConstraint) isGreater(mintVal float64) bool {
 	return false
 }
 
-// FlatHourly Model : hourly  price
-type FlatHourly struct {
+// EveryHour Model : hourly  price
+type EveryHour struct {
 	price float64
 }
 
-func (flatHourly *FlatHourly) GetCost(parkingTime slot.ParkingTime) float64 {
+func (everyHour *EveryHour) GetCost(parkingTime slot.ParkingTime) float64 {
 	hours := parkingTime.CalculateHours()
-	return math.Ceil(hours) * flatHourly.price
+	return math.Ceil(hours) * everyHour.price
 }
 
-func NewFlatHourly(price float64) ModelCalculator {
-	return &FlatHourly{price: price}
+func NewEveryHour(price float64) ModelCalculator {
+	return &EveryHour{price: price}
 }
 
-// DailyInterval Model : Daily  price
-type DailyInterval struct {
+// EveryDay Model : Daily  price
+type EveryDay struct {
 	price float64
 	TimeConstraint
 }
 
-func (dailyInterval *DailyInterval) GetCost(parkingTime slot.ParkingTime) float64 {
+func (everyDay *EveryDay) GetCost(parkingTime slot.ParkingTime) float64 {
 	mins := parkingTime.CalculateMinutes()
-	if dailyInterval.isInRange(mins) {
-		minutesOffSet := mins - dailyInterval.start
-		return math.Ceil(MintoDays(minutesOffSet)) * dailyInterval.price
+	if everyDay.isInRange(mins) {
+		minutesOffSet := mins - everyDay.start
+		return math.Ceil(MintoDays(minutesOffSet)) * everyDay.price
 	}
-	return 0
+	return -1
 }
 
-func NewDailyInterval(price float64, constraint TimeConstraint) ModelCalculator {
-	return &DailyInterval{price: price, TimeConstraint: constraint}
+func NewEveryDay(price float64, constraint TimeConstraint) ModelCalculator {
+	return &EveryDay{price: price, TimeConstraint: constraint}
 }
 
 // HourInterval Model :  fixed price for hour range
@@ -79,7 +79,7 @@ func (hourInterval *HourInterval) GetCost(parkingTime slot.ParkingTime) float64 
 	if hourInterval.isInRange(minutes) {
 		return hourInterval.price
 	}
-	return 0
+	return -1
 }
 
 func NewHourInterval(price float64, constraint TimeConstraint) ModelCalculator {
@@ -87,42 +87,42 @@ func NewHourInterval(price float64, constraint TimeConstraint) ModelCalculator {
 		TimeConstraint: constraint}
 }
 
-// InclusiveHourInterval Model :  include cost if park hour is greater than range value
-type InclusiveHourInterval struct {
+// PreviousHourInterval Model :  include cost if park hour is greater than range value
+type PreviousHourInterval struct {
 	TimeConstraint
 	price float64
 }
 
-func (inclusiveHourInterval *InclusiveHourInterval) GetCost(parkingTime slot.ParkingTime) float64 {
+func (previousHourInterval *PreviousHourInterval) GetCost(parkingTime slot.ParkingTime) float64 {
 	minutes := parkingTime.CalculateMinutes()
-	if inclusiveHourInterval.isGreater(minutes) || inclusiveHourInterval.isInRange(minutes) {
-		return inclusiveHourInterval.price
+	if previousHourInterval.isGreater(minutes) || previousHourInterval.isInRange(minutes) {
+		return previousHourInterval.price
 	}
-	return 0
+	return -1
 }
 
-func NewInclusiveHourInterval(price float64, constraint TimeConstraint) ModelCalculator {
-	return &InclusiveHourInterval{price: price,
+func NewPreviousHourInterval(price float64, constraint TimeConstraint) ModelCalculator {
+	return &PreviousHourInterval{price: price,
 		TimeConstraint: constraint}
 }
 
-// HourlyInterval Model :  hourly price for the range values
-type HourlyInterval struct {
+// EveryHourInInterval Model :  hourly price for the range values
+type EveryHourInInterval struct {
 	TimeConstraint
 	price float64
 }
 
-func (hourlyInterval *HourlyInterval) GetCost(parkingTime slot.ParkingTime) float64 {
+func (everyHourInInterval *EveryHourInInterval) GetCost(parkingTime slot.ParkingTime) float64 {
 	mins := parkingTime.CalculateMinutes()
-	if hourlyInterval.isInRange(mins) {
-		minutesOffSet := mins - hourlyInterval.start
-		return math.Ceil(MintoHr(minutesOffSet)) * hourlyInterval.price
+	if everyHourInInterval.isInRange(mins) {
+		minutesOffSet := mins - everyHourInInterval.start
+		return math.Ceil(MintoHr(minutesOffSet)) * everyHourInInterval.price
 	}
-	return 0
+	return -1
 }
 
-func NewHourlyInterval(price float64, constraint TimeConstraint) *HourlyInterval {
-	return &HourlyInterval{price: price,
+func NewEveryHourInInterval(price float64, constraint TimeConstraint) *EveryHourInInterval {
+	return &EveryHourInInterval{price: price,
 		TimeConstraint: constraint}
 }
 
@@ -139,41 +139,39 @@ func (baseTariff *BaseTariff) Append(calculator ModelCalculator) {
 	baseTariff.orderedTarrif = append(baseTariff.orderedTarrif, calculator)
 }
 
-// ParkingLotTarrif :  ordered list of tarrif Models one of model based on the
-// definition
-type ParkingLotTarrif struct {
+// SingleTariffMatcher : matches with single model in ordered list
+type SingleTariffMatcher struct {
 	BaseTariff
 }
 
-func (parkingLotTarrif *ParkingLotTarrif) GetCost(parkingTime slot.ParkingTime) float64 {
+func (singleTariffMatcher *SingleTariffMatcher) GetCost(parkingTime slot.ParkingTime) float64 {
 	var cost float64
-	for _, v := range parkingLotTarrif.orderedTarrif {
+	for _, v := range singleTariffMatcher.orderedTarrif {
 		cost = v.GetCost(parkingTime)
-		if cost != 0 {
+		if cost > -1 {
 			break
 		}
 	}
 	return cost
 }
 
-func NewParkingLotTarrif() Tariff {
-	return &ParkingLotTarrif{}
+func NewSingleTariffMatcher() Tariff {
+	return &SingleTariffMatcher{}
 }
 
-// ParkingLotTarrifWithSum : ordered list of tarrif Models sums up all the model
-// cost those in the range
-type ParkingLotTarrifWithSum struct {
+// MultipleTariffMatcher : sums up all the matching models
+type MultipleTariffMatcher struct {
 	BaseTariff
 }
 
-func (parkingLotTarrifWithSum *ParkingLotTarrifWithSum) GetCost(parkingTime slot.ParkingTime) float64 {
+func (multipleTariffMatcher *MultipleTariffMatcher) GetCost(parkingTime slot.ParkingTime) float64 {
 	var sum float64
-	for _, v := range parkingLotTarrifWithSum.orderedTarrif {
+	for _, v := range multipleTariffMatcher.orderedTarrif {
 		sum += v.GetCost(parkingTime)
 	}
 	return sum
 }
 
-func NewParkingLotTarrifWithSum() Tariff {
-	return &ParkingLotTarrifWithSum{}
+func NewMultipleTariffMatcher() Tariff {
+	return &MultipleTariffMatcher{}
 }

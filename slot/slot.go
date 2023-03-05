@@ -11,9 +11,11 @@ const (
 )
 
 var Vehicles map[int]Vehicle
+var vehiclesStr map[int]string
 
 func init() {
-	Vehicles = map[int]Vehicle{SCOOTER: NewRoadVehicle(SCOOTER), SUV: NewRoadVehicle(SUV), TRUCK: NewRoadVehicle(SUV)}
+	Vehicles = map[int]Vehicle{SCOOTER: NewRoadVehicle(SCOOTER), SUV: NewRoadVehicle(SUV), TRUCK: NewRoadVehicle(TRUCK)}
+	vehiclesStr = map[int]string{SCOOTER: "Scooter", SUV: "Suv", TRUCK: "Truck"}
 }
 
 type Vehicle interface {
@@ -26,6 +28,10 @@ type RoadVehicle struct {
 
 func (vehicle *RoadVehicle) GetVehicleType() int {
 	return vehicle.vehicleType
+}
+
+func (vehicle *RoadVehicle) String() string {
+	return vehiclesStr[vehicle.vehicleType]
 }
 
 type Slot interface {

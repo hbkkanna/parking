@@ -8,11 +8,10 @@ import (
 	"time"
 )
 
-func TestFlatHourly(t *testing.T) {
-
-	// test case  Flat Hourly Model
-	tariff1 := NewParkingLotTarrif()
-	tariff1.Append(NewFlatHourly(10))
+func TestEveryHour(t *testing.T) {
+	// test case  EveryHour Model
+	tariff1 := NewSingleTariffMatcher()
+	tariff1.Append(NewEveryHour(10))
 	newTicket := slot.NewTicket(1, slot.NewVehicleSlot(slot.Vehicles[slot.SCOOTER], 2))
 
 	cur := time.Now()
@@ -37,8 +36,8 @@ func TestFlatHourly(t *testing.T) {
 }
 
 func TestHourInterval(t *testing.T) {
-	// test case HourlyInterval Model
-	tariff1 := NewParkingLotTarrif()
+	// test case EveryHourInInterval Model
+	tariff1 := NewSingleTariffMatcher()
 	tariff1.Append(NewHourInterval(10, TimeConstraint{start: HrtoMinutes(0), end: HrtoMinutes(4)}))
 	tariff1.Append(NewHourInterval(20, TimeConstraint{start: HrtoMinutes(4), end: HrtoMinutes(8)}))
 	tariff1.Append(NewHourInterval(30, TimeConstraint{start: HrtoMinutes(8), end: HrtoMinutes(12)}))
@@ -71,8 +70,10 @@ func TestHourInterval(t *testing.T) {
 	val := time.Now()
 	newTicket.SetInTime(val)
 	newTicket.SetOutTime(val.Add(time.Hour * 12))
-	if tariff1.GetCost(newTicket) != 0 {
+	if tariff1.GetCost(newTicket) != -1 {
 		fmt.Printf("%.2f", newTicket.CalculateHours())
+		fmt.Println(tariff1.GetCost(newTicket))
+
 		t.Errorf("Hour Interval Model failed ")
 	} else {
 		fmt.Println(tariff1.GetCost(newTicket))
@@ -80,13 +81,13 @@ func TestHourInterval(t *testing.T) {
 
 }
 
-func TestDailyInterval(t *testing.T) {
-	// test case DailyInterval Model
-	tariff1 := NewParkingLotTarrif()
+func TestEveryHourInInterval(t *testing.T) {
+	// test case EveryDay Model
+	tariff1 := NewSingleTariffMatcher()
 	tariff1.Append(NewHourInterval(10, TimeConstraint{start: HrtoMinutes(0), end: HrtoMinutes(8)}))
 	tariff1.Append(NewHourInterval(20, TimeConstraint{start: HrtoMinutes(8), end: HrtoMinutes(24)}))
 
-	tariff1.Append(NewDailyInterval(30, TimeConstraint{start: DaytoMinutes(0), end: math.MaxFloat64}))
+	tariff1.Append(NewEveryDay(30, TimeConstraint{start: DaytoMinutes(0), end: math.MaxFloat64}))
 
 	newTicket := slot.NewTicket(1, slot.NewVehicleSlot(slot.Vehicles[slot.SCOOTER], 2))
 	newTicket.SetInTime(time.Now())
@@ -103,11 +104,11 @@ func TestDailyInterval(t *testing.T) {
 }
 
 func TestHourlyInterval(t *testing.T) {
-	// test case HourlyInterval Model
-	tariff1 := NewParkingLotTarrif()
+	// test case EveryHourInInterval Model
+	tariff1 := NewSingleTariffMatcher()
 	tariff1.Append(NewHourInterval(10, TimeConstraint{start: HrtoMinutes(0), end: HrtoMinutes(8)}))
 	tariff1.Append(NewHourInterval(20, TimeConstraint{start: HrtoMinutes(8), end: HrtoMinutes(12)}))
-	tariff1.Append(NewHourlyInterval(30, TimeConstraint{start: HrtoMinutes(12), end: math.MaxFloat64}))
+	tariff1.Append(NewEveryHourInInterval(30, TimeConstraint{start: HrtoMinutes(12), end: math.MaxFloat64}))
 
 	newTicket := slot.NewTicket(1, slot.NewVehicleSlot(slot.Vehicles[slot.SCOOTER], 2))
 	newTicket.SetInTime(time.Now())
@@ -125,10 +126,10 @@ func TestHourlyInterval(t *testing.T) {
 
 func TestParkingLotTariffSum(t *testing.T) {
 	// test parking Lot Sum & inclusive model
-	tariff1 := NewParkingLotTarrifWithSum()
-	tariff1.Append(NewInclusiveHourInterval(10, TimeConstraint{start: HrtoMinutes(0), end: HrtoMinutes(8)}))
-	tariff1.Append(NewInclusiveHourInterval(20, TimeConstraint{start: HrtoMinutes(8), end: HrtoMinutes(12)}))
-	tariff1.Append(NewHourlyInterval(30, TimeConstraint{start: HrtoMinutes(12), end: math.MaxFloat64}))
+	tariff1 := NewMultipleTariffMatcher()
+	tariff1.Append(NewPreviousHourInterval(10, TimeConstraint{start: HrtoMinutes(0), end: HrtoMinutes(8)}))
+	tariff1.Append(NewPreviousHourInterval(20, TimeConstraint{start: HrtoMinutes(8), end: HrtoMinutes(12)}))
+	tariff1.Append(NewEveryHourInInterval(30, TimeConstraint{start: HrtoMinutes(12), end: math.MaxFloat64}))
 
 	newTicket := slot.NewTicket(1, slot.NewVehicleSlot(slot.Vehicles[slot.SCOOTER], 2))
 	newTicket.SetInTime(time.Now())

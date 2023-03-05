@@ -34,6 +34,7 @@ func (parkingLot *VehicleParkingLot) Park(vehicle slot.Vehicle) (slot.Ticket, er
 
 //testing purpose to set time
 func (parkingLot *VehicleParkingLot) park(vehicle slot.Vehicle, inTime time.Time) (slot.Ticket, error) {
+	fmt.Printf(" -- Park : %v -- \n", vehicle)
 	ticket, err := parkingLot.Park(vehicle)
 	if err != nil {
 		return nil, err
