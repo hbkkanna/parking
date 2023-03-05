@@ -1,6 +1,8 @@
 package slot
 
-import "time"
+import (
+	"time"
+)
 
 const (
 	SCOOTER = iota

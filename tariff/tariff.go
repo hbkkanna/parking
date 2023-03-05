@@ -1,12 +1,12 @@
 package tariff
 
 import (
-	parking "github.com/hbkkanna/parking/slot"
+	"github.com/hbkkanna/parking/slot"
 	"math"
 )
 
 type ModelCalculator interface {
-	GetCost(ticket parking.Ticket) float64
+	GetCost(parkingTime slot.ParkingTime) float64
 }
 
 type TimeConstraint struct {
@@ -40,8 +40,8 @@ type FlatHourly struct {
 	price float64
 }
 
-func (flatHourly *FlatHourly) GetCost(ticket parking.Ticket) float64 {
-	hours := ticket.CalculateHours()
+func (flatHourly *FlatHourly) GetCost(parkingTime slot.ParkingTime) float64 {
+	hours := parkingTime.CalculateHours()
 	return math.Ceil(hours) * flatHourly.price
 }
 
@@ -55,8 +55,8 @@ type DailyInterval struct {
 	TimeConstraint
 }
 
-func (dailyInterval *DailyInterval) GetCost(ticket parking.Ticket) float64 {
-	mins := ticket.CalculateMinutes()
+func (dailyInterval *DailyInterval) GetCost(parkingTime slot.ParkingTime) float64 {
+	mins := parkingTime.CalculateMinutes()
 	if dailyInterval.isInRange(mins) {
 		minutesOffSet := mins - dailyInterval.start
 		return math.Ceil(MintoDays(minutesOffSet)) * dailyInterval.price
@@ -74,8 +74,8 @@ type HourInterval struct {
 	price float64
 }
 
-func (hourInterval *HourInterval) GetCost(ticket parking.Ticket) float64 {
-	minutes := ticket.CalculateMinutes()
+func (hourInterval *HourInterval) GetCost(parkingTime slot.ParkingTime) float64 {
+	minutes := parkingTime.CalculateMinutes()
 	if hourInterval.isInRange(minutes) {
 		return hourInterval.price
 	}
@@ -93,8 +93,8 @@ type InclusiveHourInterval struct {
 	price float64
 }
 
-func (inclusiveHourInterval *InclusiveHourInterval) GetCost(ticket parking.Ticket) float64 {
-	minutes := ticket.CalculateMinutes()
+func (inclusiveHourInterval *InclusiveHourInterval) GetCost(parkingTime slot.ParkingTime) float64 {
+	minutes := parkingTime.CalculateMinutes()
 	if inclusiveHourInterval.isGreater(minutes) || inclusiveHourInterval.isInRange(minutes) {
 		return inclusiveHourInterval.price
 	}
@@ -112,8 +112,8 @@ type HourlyInterval struct {
 	price float64
 }
 
-func (hourlyInterval *HourlyInterval) GetCost(ticket parking.Ticket) float64 {
-	mins := ticket.CalculateMinutes()
+func (hourlyInterval *HourlyInterval) GetCost(parkingTime slot.ParkingTime) float64 {
+	mins := parkingTime.CalculateMinutes()
 	if hourlyInterval.isInRange(mins) {
 		minutesOffSet := mins - hourlyInterval.start
 		return math.Ceil(MintoHr(minutesOffSet)) * hourlyInterval.price
@@ -145,10 +145,10 @@ type ParkingLotTarrif struct {
 	BaseTariff
 }
 
-func (parkingLotTarrif *ParkingLotTarrif) GetCost(ticket parking.Ticket) float64 {
+func (parkingLotTarrif *ParkingLotTarrif) GetCost(parkingTime slot.ParkingTime) float64 {
 	var cost float64
 	for _, v := range parkingLotTarrif.orderedTarrif {
-		cost = v.GetCost(ticket)
+		cost = v.GetCost(parkingTime)
 		if cost != 0 {
 			break
 		}
@@ -166,10 +166,10 @@ type ParkingLotTarrifWithSum struct {
 	BaseTariff
 }
 
-func (parkingLotTarrifWithSum *ParkingLotTarrifWithSum) GetCost(ticket parking.Ticket) float64 {
+func (parkingLotTarrifWithSum *ParkingLotTarrifWithSum) GetCost(parkingTime slot.ParkingTime) float64 {
 	var sum float64
 	for _, v := range parkingLotTarrifWithSum.orderedTarrif {
-		sum += v.GetCost(ticket)
+		sum += v.GetCost(parkingTime)
 	}
 	return sum
 }

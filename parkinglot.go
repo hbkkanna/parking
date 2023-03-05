@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hbkkanna/parking/slot"
-	"github.com/hbkkanna/parking/tariff"
+	tariff2 "github.com/hbkkanna/parking/tariff"
 	"time"
 )
 
@@ -15,7 +15,7 @@ type Parkinglot interface {
 
 type VehicleParkingLot struct {
 	slots      map[int][]slot.Slot
-	tariff     map[int]tariff.Tariff
+	tariff     map[int]tariff2.Tariff
 	ticketCnt  int
 	receiptCnt int
 }
@@ -23,15 +23,28 @@ type VehicleParkingLot struct {
 func (parkingLot *VehicleParkingLot) Park(vehicle slot.Vehicle) (slot.Ticket, error) {
 	freeSlot, err := parkingLot.findFreeSlot(vehicle)
 	if err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
 	freeSlot.SetInTime(time.Now())
 	parkingLot.ticketCnt++
-	return slot.NewTicket(parkingLot.ticketCnt, freeSlot), nil
+	ticket := slot.NewTicket(parkingLot.ticketCnt, freeSlot)
+	return ticket, nil
+}
+
+//testing purpose to set time
+func (parkingLot *VehicleParkingLot) park(vehicle slot.Vehicle, inTime time.Time) (slot.Ticket, error) {
+	ticket, err := parkingLot.Park(vehicle)
+	if err != nil {
+		return nil, err
+	}
+	ticket.SetInTime(inTime)
+	fmt.Println(ticket)
+	return ticket, nil
 }
 
 func (parkingLot *VehicleParkingLot) UnPark(ticket slot.Ticket) (slot.Receipt, error) {
-	vehicleSlot, err := parkingLot.findSlot(ticket.GetVehicleType(), ticket.GetNumber())
+	vehicleSlot, err := parkingLot.getSlot(ticket.GetVehicleType(), ticket.GetNumber())
 	if err != nil {
 		return nil, err
 	}
@@ -42,13 +55,14 @@ func (parkingLot *VehicleParkingLot) UnPark(ticket slot.Ticket) (slot.Receipt, e
 	cost := parkingLot.tariff[ticket.GetVehicleType()].GetCost(ticket)
 	parkingLot.receiptCnt++
 	receipt := slot.NewReceipt(parkingLot.receiptCnt, cost, slot.CloneVehicleSlot(vehicleSlot))
+	fmt.Println(receipt)
 	vehicleSlot.Reset()
 	return receipt, nil
 }
 
 func (parkingLot *VehicleParkingLot) findFreeSlot(vehicle slot.Vehicle) (slot.Slot, error) {
 	slots, ok := parkingLot.slots[vehicle.GetVehicleType()]
-	notAvail := errors.New(fmt.Sprintf(" No Slot for vehicle %v ", vehicle))
+	notAvail := errors.New(fmt.Sprintf(" No space Available"))
 	if !ok {
 		return nil, notAvail
 	}
@@ -60,27 +74,22 @@ func (parkingLot *VehicleParkingLot) findFreeSlot(vehicle slot.Vehicle) (slot.Sl
 	return nil, notAvail
 }
 
-func (parkingLot *VehicleParkingLot) findSlot(vehicleType int, number int) (slot.Slot, error) {
+func (parkingLot *VehicleParkingLot) getSlot(vehicleType int, number int) (slot.Slot, error) {
 	slots, ok := parkingLot.slots[vehicleType]
 	notFound := errors.New(fmt.Sprintf(" Slot not found for  vehicle type %d , for number %d ", vehicleType, number))
 	if !ok {
 		return nil, notFound
 	}
-	for _, v := range slots {
-		if v.GetNumber() == number {
-			return v, nil
-		}
-	}
-	return nil, notFound
+	return slots[number], nil
 }
 
 type ParkingConfig struct {
 	vehicleType int
 	slotCnt     int
-	tariff      tariff.Tariff
+	tariff      tariff2.Tariff
 }
 
-func NewParkingConfig(vehicleType int, slotCnt int, tariff tariff.Tariff) *ParkingConfig {
+func NewParkingConfig(vehicleType int, slotCnt int, tariff tariff2.Tariff) *ParkingConfig {
 	return &ParkingConfig{vehicleType: vehicleType, slotCnt: slotCnt, tariff: tariff}
 }
 
@@ -105,8 +114,8 @@ func getSlotMap(configs []*ParkingConfig) map[int][]slot.Slot {
 	return vehicleSlots
 }
 
-func getTariffMap(configs []*ParkingConfig) map[int]tariff.Tariff {
-	tariffs := make(map[int]tariff.Tariff)
+func getTariffMap(configs []*ParkingConfig) map[int]tariff2.Tariff {
+	tariffs := make(map[int]tariff2.Tariff)
 	for _, v := range configs {
 		tariffs[v.vehicleType] = v.tariff
 	}
