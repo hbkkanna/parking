@@ -89,12 +89,20 @@ func TestMallParkingLot(t *testing.T) {
 		}
 	}
 	ticket, err = lot.park(slot.NewRoadVehicle(slot.SUV), time.Now().Add(-time.Hour*2))
-	if err == nil {
-		receipt, _ := lot.UnPark(ticket)
-		if receipt.GetCost() != 60 {
-			t.Errorf(message)
-		}
+	ticket1, err := lot.park(slot.NewRoadVehicle(slot.SUV), time.Now().Add(-time.Hour*2))
+	ticket, err = lot.park(slot.NewRoadVehicle(slot.SUV), time.Now().Add(-time.Hour*2))
+	ticket1, err = lot.park(slot.NewRoadVehicle(slot.SUV), time.Now().Add(-time.Hour*2))
+	ticket, err = lot.park(slot.NewRoadVehicle(slot.SUV), time.Now().Add(-time.Hour*2))
+	ticket1, err = lot.park(slot.NewRoadVehicle(slot.SUV), time.Now().Add(-time.Hour*2))
+	receipt, _ := lot.UnPark(ticket)
+	if receipt.GetCost() != 60 {
+		t.Errorf(message)
 	}
+	receipt1, _ := lot.UnPark(ticket1)
+	if receipt1.GetCost() != 60 {
+		t.Errorf(message)
+	}
+
 	ticket, err = lot.park(slot.NewRoadVehicle(slot.TRUCK), time.Now())
 	if err == nil {
 		receipt, _ := lot.UnPark(ticket)
