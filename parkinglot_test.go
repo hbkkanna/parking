@@ -230,7 +230,7 @@ func TestAirportParkingLot(t *testing.T) {
 	message := " ******** Airport parking lot case FAILED ******* "
 	plot := NewParkingLot(AirportParkingLotConfig())
 	lot, _ := plot.(*VehicleParkingLot)
-	ticket, err := lot.park(slot.NewRoadVehicle(slot.SCOOTER), time.Now())
+	ticket, err := lot.park(slot.NewRoadVehicle(slot.SCOOTER), time.Now().Add(-time.Minute*59))
 	if err == nil {
 		receipt, _ := lot.UnPark(ticket)
 		if receipt.GetCost() != 0 {
@@ -257,5 +257,4 @@ func TestParkingLotFullCase(t *testing.T) {
 	if err == nil {
 		t.Errorf("Parking lot full case failed ")
 	}
-
 }

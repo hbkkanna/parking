@@ -10,8 +10,8 @@ type ModelCalculator interface {
 }
 
 type TimeConstraint struct {
-	start float64 // minutes precession
-	end   float64 // minutes precession
+	start float64 // nanoseconds precession in minutes
+	end   float64
 }
 
 func NewTimeConstraint(start float64, end float64) TimeConstraint {
