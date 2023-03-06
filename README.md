@@ -1,4 +1,4 @@
-# parking lot
+# Parking Lot
 
 parkinglot.go is the main module in the system, it creates parking lot system 
 based on input config , parking lot type and slot count of each vehicle type are configurable with tariff models listed below . 
