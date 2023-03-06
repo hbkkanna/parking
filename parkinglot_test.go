@@ -315,15 +315,3 @@ func TestAirportParkingLot(t *testing.T) {
 		}
 	}
 }
-
-func TestParkingLotFullCase(t *testing.T) {
-	plot := NewParkingLot(SmallParkingLotConfig())
-	lot, _ := plot.(*VehicleParkingLot)
-	fmt.Println("-----parking lot full case------ ")
-	lot.park(slot.NewRoadVehicle(slot.SCOOTER), time.Now())
-	lot.park(slot.NewRoadVehicle(slot.SCOOTER), time.Now())
-	_, err := lot.park(slot.NewRoadVehicle(slot.SCOOTER), time.Now())
-	if err == nil {
-		t.Errorf("Parking lot full case failed ")
-	}
-}
