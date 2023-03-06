@@ -47,16 +47,25 @@ func TestSMallMallParkingLot(t *testing.T) {
 	message := " ******** Mall parking lot case FAILED ******* "
 	plot := NewParkingLot(SmallParkingLotConfig())
 	lot, _ := plot.(*VehicleParkingLot)
-	ticket, err := lot.park(slot.NewRoadVehicle(slot.SCOOTER), time.Now().Add(-time.Hour*3))
-	if err == nil {
-		receipt, _ := lot.UnPark(ticket)
+	ticket1, err1 := lot.park(slot.NewRoadVehicle(slot.SCOOTER), time.Now().Add(-time.Hour*3))
+
+	ticket2, err2 := lot.park(slot.NewRoadVehicle(slot.SCOOTER), time.Now())
+
+	// NO SPACE CASE
+	_, err3 := lot.park(slot.NewRoadVehicle(slot.SCOOTER), time.Now())
+	if err3 == nil {
+		t.Errorf(message)
+	}
+
+	if err1 == nil {
+		receipt, _ := lot.UnPark(ticket1)
 		if receipt.GetCost() != 40 {
 			t.Errorf(message)
 		}
 	}
-	ticket, err = lot.park(slot.NewRoadVehicle(slot.SCOOTER), time.Now())
-	if err == nil {
-		receipt, _ := lot.UnPark(ticket)
+
+	if err2 == nil {
+		receipt, _ := lot.UnPark(ticket2)
 		if receipt.GetCost() != 10 {
 			t.Errorf(message)
 		}
@@ -81,13 +90,31 @@ func TestMallParkingLot(t *testing.T) {
 	fmt.Println("----mall parking  case------ ")
 	plot := NewParkingLot(MallParkingLotConfig())
 	lot, _ := plot.(*VehicleParkingLot)
-	ticket, err := lot.park(slot.NewRoadVehicle(slot.SCOOTER), time.Now().Add(-time.Hour*3))
+	ticket, err := lot.park(slot.NewRoadVehicle(slot.SCOOTER), time.Now().Add(-time.Minute*(60*3+30)))
 	if err == nil {
 		receipt, _ := lot.UnPark(ticket)
 		if receipt.GetCost() != 40 {
 			t.Errorf(message)
 		}
 	}
+
+	ticket, err = lot.park(slot.NewRoadVehicle(slot.SUV), time.Now().Add(-time.Minute*(60*6+1)))
+	if err == nil {
+		receipt, _ := lot.UnPark(ticket)
+		if receipt.GetCost() != 140 {
+			t.Errorf(message)
+		}
+	}
+
+	ticket, err = lot.park(slot.NewRoadVehicle(slot.TRUCK), time.Now().Add(-time.Minute*(60*1+59)))
+	if err == nil {
+		receipt, _ := lot.UnPark(ticket)
+		if receipt.GetCost() != 100 {
+			t.Errorf(message)
+		}
+	}
+
+	// slot change case
 	ticket, err = lot.park(slot.NewRoadVehicle(slot.SUV), time.Now().Add(-time.Hour*2))
 	ticket1, err := lot.park(slot.NewRoadVehicle(slot.SUV), time.Now().Add(-time.Hour*2))
 	ticket, err = lot.park(slot.NewRoadVehicle(slot.SUV), time.Now().Add(-time.Hour*2))
@@ -103,13 +130,6 @@ func TestMallParkingLot(t *testing.T) {
 		t.Errorf(message)
 	}
 
-	ticket, err = lot.park(slot.NewRoadVehicle(slot.TRUCK), time.Now())
-	if err == nil {
-		receipt, _ := lot.UnPark(ticket)
-		if receipt.GetCost() != 50 {
-			t.Errorf(message)
-		}
-	}
 }
 
 // example 3
@@ -160,15 +180,31 @@ func TestStadiumParkingLot(t *testing.T) {
 
 	plot := NewParkingLot(StadiumParkingLotConfig())
 	lot, _ := plot.(*VehicleParkingLot)
-	ticket, err := lot.park(slot.NewRoadVehicle(slot.SCOOTER), time.Now().Add(-time.Hour*13))
+	ticket, err := lot.park(slot.NewRoadVehicle(slot.SCOOTER), time.Now().Add(-time.Minute*(3*60+40)))
 	if err == nil {
 		receipt, _ := lot.UnPark(ticket)
-		if receipt.GetCost() != 290 {
+		if receipt.GetCost() != 30 {
 			t.Errorf(message)
 		}
 	}
 
-	ticket, err = lot.park(slot.NewRoadVehicle(slot.SUV), time.Now().Add(-time.Hour*13))
+	ticket, err = lot.park(slot.NewRoadVehicle(slot.SCOOTER), time.Now().Add(-time.Minute*(60*14+59))) // 11 hr 30 min
+	if err == nil {
+		receipt, _ := lot.UnPark(ticket)
+		if receipt.GetCost() != 390 {
+			t.Errorf(message)
+		}
+	}
+
+	ticket, err = lot.park(slot.NewRoadVehicle(slot.SUV), time.Now().Add(-time.Minute*(60*11+30))) // 11 hr 30 min
+	if err == nil {
+		receipt, _ := lot.UnPark(ticket)
+		if receipt.GetCost() != 180 {
+			t.Errorf(message)
+		}
+	}
+
+	ticket, err = lot.park(slot.NewRoadVehicle(slot.SUV), time.Now().Add(-time.Minute*(60*13+5)))
 	if err == nil {
 		receipt, _ := lot.UnPark(ticket)
 		if receipt.GetCost() != 580 {
@@ -230,6 +266,7 @@ func TestAirportParkingLot(t *testing.T) {
 	message := " ******** Airport parking lot case FAILED ******* "
 	plot := NewParkingLot(AirportParkingLotConfig())
 	lot, _ := plot.(*VehicleParkingLot)
+
 	ticket, err := lot.park(slot.NewRoadVehicle(slot.SCOOTER), time.Now().Add(-time.Minute*59))
 	if err == nil {
 		receipt, _ := lot.UnPark(ticket)
@@ -238,10 +275,42 @@ func TestAirportParkingLot(t *testing.T) {
 		}
 	}
 
-	ticket, err = lot.park(slot.NewRoadVehicle(slot.SCOOTER), time.Now().Add(-time.Hour*24))
+	ticket, err = lot.park(slot.NewRoadVehicle(slot.SCOOTER), time.Now().Add(-time.Minute*(14*60+59)))
+	if err == nil {
+		receipt, _ := lot.UnPark(ticket)
+		if receipt.GetCost() != 60 {
+			t.Errorf(message)
+		}
+	}
+
+	ticket, err = lot.park(slot.NewRoadVehicle(slot.SCOOTER), time.Now().Add(-time.Hour*(24+12)))
 	if err == nil {
 		receipt, _ := lot.UnPark(ticket)
 		if receipt.GetCost() != 160 {
+			t.Errorf(message)
+		}
+	}
+
+	ticket, err = lot.park(slot.NewRoadVehicle(slot.SUV), time.Now().Add(-time.Minute*50))
+	if err == nil {
+		receipt, _ := lot.UnPark(ticket)
+		if receipt.GetCost() != 60 {
+			t.Errorf(message)
+		}
+	}
+
+	ticket, err = lot.park(slot.NewRoadVehicle(slot.SUV), time.Now().Add(-time.Minute*(60*23+59)))
+	if err == nil {
+		receipt, _ := lot.UnPark(ticket)
+		if receipt.GetCost() != 80 {
+			t.Errorf(message)
+		}
+	}
+
+	ticket, err = lot.park(slot.NewRoadVehicle(slot.SUV), time.Now().Add(-time.Hour*(24*3+1)))
+	if err == nil {
+		receipt, _ := lot.UnPark(ticket)
+		if receipt.GetCost() != 400 {
 			t.Errorf(message)
 		}
 	}

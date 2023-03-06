@@ -5,6 +5,8 @@ import (
 	"math"
 )
 
+const NOTINRANGE = -1
+
 type ModelCalculator interface {
 	GetCost(parkingTime slot.ParkingTime) float64
 }
@@ -61,7 +63,7 @@ func (everyDay *EveryDay) GetCost(parkingTime slot.ParkingTime) float64 {
 		minutesOffSet := mins - everyDay.start
 		return math.Ceil(MintoDays(minutesOffSet)) * everyDay.price
 	}
-	return -1
+	return NOTINRANGE
 }
 
 func NewEveryDay(price float64, constraint TimeConstraint) ModelCalculator {
@@ -79,7 +81,7 @@ func (hourInterval *HourInterval) GetCost(parkingTime slot.ParkingTime) float64 
 	if hourInterval.isInRange(minutes) {
 		return hourInterval.price
 	}
-	return -1
+	return NOTINRANGE
 }
 
 func NewHourInterval(price float64, constraint TimeConstraint) ModelCalculator {
@@ -98,7 +100,7 @@ func (previousHourInterval *PreviousHourInterval) GetCost(parkingTime slot.Parki
 	if previousHourInterval.isGreater(minutes) || previousHourInterval.isInRange(minutes) {
 		return previousHourInterval.price
 	}
-	return -1
+	return NOTINRANGE
 }
 
 func NewPreviousHourInterval(price float64, constraint TimeConstraint) ModelCalculator {
@@ -118,7 +120,7 @@ func (everyHourInInterval *EveryHourInInterval) GetCost(parkingTime slot.Parking
 		minutesOffSet := mins - everyHourInInterval.start
 		return math.Ceil(MintoHr(minutesOffSet)) * everyHourInInterval.price
 	}
-	return -1
+	return NOTINRANGE
 }
 
 func NewEveryHourInInterval(price float64, constraint TimeConstraint) *EveryHourInInterval {
@@ -148,7 +150,7 @@ func (singleTariffMatcher *SingleTariffMatcher) GetCost(parkingTime slot.Parking
 	var cost float64
 	for _, v := range singleTariffMatcher.orderedTarrif {
 		cost = v.GetCost(parkingTime)
-		if cost > -1 {
+		if cost > NOTINRANGE {
 			break
 		}
 	}
@@ -167,7 +169,11 @@ type MultipleTariffMatcher struct {
 func (multipleTariffMatcher *MultipleTariffMatcher) GetCost(parkingTime slot.ParkingTime) float64 {
 	var sum float64
 	for _, v := range multipleTariffMatcher.orderedTarrif {
-		sum += v.GetCost(parkingTime)
+		cost := v.GetCost(parkingTime)
+		if cost != NOTINRANGE {
+			sum += cost
+		}
+		//sum += v.GetCost(parkingTime)
 	}
 	return sum
 }
